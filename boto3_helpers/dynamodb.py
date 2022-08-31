@@ -9,83 +9,64 @@ def _page_helper(method, **kwargs):
 
 
 def query_table(ddb_table, **kwargs):
-    """Yield all of the items that match the DynamoDB query.
-    *ddb_table* is a ``boto3.resource('dynamodb').Table`` instance.
-    *kwargs* are passed directly to the ``Table.query`` method.
+    """Yield all of the items that match the DynamoDB query:
+
+    * *ddb_table* is a ``boto3.resource('dynamodb').Table`` instance.
+    * *kwargs* are passed directly to the ``Table.query`` method.
 
     Usage:
+
+    .. code-block:: python
+
         from boto3 import resource as boto3_resource
+        from boto3.dynamodb.conditions import Key, Attr
         from boto3_helpers.dynamodb import query_table
 
         ddb_resource = boto3.resource('dynamodb')
         ddb_table = ddb_resource.Table('example-table')
-        kwargs = {'KeyConditionExpression': }
+        condition = Key('username').eq('johndoe')
         all_items = list(
-            query_table(ddb_table, KeyConditionExpression=Key('username').eq('johndoe'))
+            query_table(ddb_table, KeyConditionExpression=condition)
         )
-
-    This is equivalent to:
-        from boto3 import resource as boto3_resource
-        from boto3.dynamodb.conditions import Key, Attr
-
-        ddb_resource = boto3.resource('dynamodb')
-        ddb_table = ddb_resource.Table('example-table')
-        kwargs = {'KeyConditionExpression': Key('username').eq('johndoe')}
-        while True:
-            resp = ddb_table.query(**kwargs)
-            for item in resp.get('Items', []):
-                yield item
-            if 'LastEvaluatedKey' not in resp:
-                break
-            else:
-                kwargs['ExclusiveStartKey'] = item['LastEvaluatedKey']
     """
     yield from _page_helper(ddb_table.query, **kwargs)
 
 
 def scan_table(ddb_table, **kwargs):
-    """Yield all of the items that match the DynamoDB scan criteria.
-    *ddb_table* is a ``boto3.resource('dynamodb').Table`` instance.
-    *kwargs* are passed directly to the ``Table.scan`` method.
+    """Yield all of the items that match the DynamoDB query:
+
+    * *ddb_table* is a ``boto3.resource('dynamodb').Table`` instance.
+    * *kwargs* are passed directly to the ``Table.scan`` method.
 
     Usage:
+
+    .. code-block:: python
+
         from boto3 import resource as boto3_resource
         from boto3_helpers.dynamodb import scan_table
 
         ddb_resource = boto3.resource('dynamodb')
         ddb_table = ddb_resource.Table('example-table')
-        kwargs = {'KeyConditionExpression': }
+        condition = Key('username').eq('johndoe')
         all_items = list(
-            scan_table(ddb_table, KeyConditionExpression=Key('username').eq('johndoe'))
+            scan_table(ddb_table, KeyConditionExpression=condition)
         )
-
-    This is equivalent to:
-        from boto3 import resource as boto3_resource
-        from boto3.dynamodb.conditions import Key, Attr
-
-        ddb_resource = boto3.resource('dynamodb')
-        ddb_table = ddb_resource.Table('example-table')
-        kwargs = {'FilterExpression': Attr('age').lt(27)}
-        while True:
-            resp = ddb_table.scan(**kwargs)
-            for item in resp.get('Items', []):
-                yield item
-            if 'LastEvaluatedKey' not in resp:
-                break
-            else:
-                kwargs['ExclusiveStartKey'] = item['LastEvaluatedKey']
     """
     yield from _page_helper(ddb_table.scan, **kwargs)
 
 
 def update_attributes(ddb_table, key, update_map, **kwargs):
-    """Update a DyanmoDB table item and return the result.
-    *ddb_table* is a ``boto3.resource('dynamodb').Table`` instance.
-    *key* is a mapping that identifies the item to update.
-    *update_map* is a mapping of item attributes to target values.
-    *kwargs* are passed to the ``update_item`` call.
+    """Update a DyanmoDB table item and return the result:
+    
+    * *ddb_table* is a ``boto3.resource('dynamodb').Table`` instance.
+    * *key* is a mapping that identifies the item to update.
+    * *update_map* is a mapping of item attributes to target values.
+    * *kwargs* are passed directly to the the ``Table.update_item`` method.
 
     Usage:
+
+    .. code-block:: python
+
         from boto3 import resource as boto3_resource
         from boto3_helpers.dynamodb import update_attributes
 
@@ -101,12 +82,15 @@ def update_attributes(ddb_table, key, update_map, **kwargs):
     ``ExpressionAttributeValues`` parameters.
 
     Equivalent to:
+    
+    .. code-block:: python
+
         from boto3 import resource as boto3_resource
 
         ddb_resource = boto3.resource('dynamodb')
         ddb_table = ddb_resource.Table('example-table')
         key = {'username': 'janedoe', 'last_name': 'Doe'}
-        return ddb_table.update_item(
+        resp = ddb_table.update_item(
             Key=key,
             UpdateExpression='SET age = :val1',
             ExpressionAttributeValues={':val1': 26},
