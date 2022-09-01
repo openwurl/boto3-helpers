@@ -18,21 +18,23 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        python -m pip install -U pip
-        pip install .
-        pip install -U coverage flake8 wheel
+        python -m pip install -U pip .
     - name: Static checks
+      if: "matrix.python-version == '3.9'"
       run: |
+        python -m pip install -U black flake8
         make check
     - name: Run unit tests
       run: |
+        python -m pip install -U coverage
         make coverage
     - name: Build docs
-      if: "matrix.python-version == '3.8'"
+      if: "matrix.python-version == '3.9'"
       run: |
-        pip install -U sphinx
+        python -m pip install -U sphinx
         make docs
     - name: Build package
-      if: "matrix.python-version == '3.8'"
+      if: "matrix.python-version == '3.9'"
       run: |
+        python -m pip install -U twine
         make package
