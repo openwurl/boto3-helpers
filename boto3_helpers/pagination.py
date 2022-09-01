@@ -19,7 +19,7 @@ def yield_all_items(boto_client, method_name, list_key, **kwargs):
         for item in yield_all_items(
             ec2_client, 'describe_instances', 'Reservations'
         ):
-            print(item['InstanceId'])
+            print(item['ReservationId'])
 
     In this example, the ``list_key`` for EC2's ``describe_instances`` is
     ``'Reservations'``.
@@ -36,9 +36,10 @@ def yield_all_items(boto_client, method_name, list_key, **kwargs):
             s3_client,
             'list_objects_v2',
             'Contents',
-            Bucket='example-bucket'
+            Bucket='example-bucket',
+            Prefix='example-prefix/'
         ):
-            print(item['key'])
+            print(item['Key'])
 
     In this example, the ``list_key`` for S3's ``list_objects_v2`` is ``'Contents'``.
 
