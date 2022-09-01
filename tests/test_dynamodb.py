@@ -128,7 +128,7 @@ class DynamoDBTests(TestCase):
         update_params = {
             'TableName': 'test-table',
             'Key': {'last_name': 'Doe', 'username': 'janedoe'},
-            'UpdateExpression': 'SET age = :val1 weight_kg = :val2',
+            'UpdateExpression': 'SET age = :val1, weight_kg = :val2',
             'ExpressionAttributeValues': {':val1': 26, ':val2': 70},
             'ReturnValues': 'ALL_NEW',
         }
