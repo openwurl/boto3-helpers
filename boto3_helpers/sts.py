@@ -13,9 +13,9 @@ def assumed_role_session(sts_client=None, session_kwargs=None, **assume_role_kwa
       created with ``boto3.client('sts')``.
     * *session_kwargs* are the keyword arguments you want to pass to the
       ``boto3.Session()`` constructor.
-    * *assume_role_kwargs* are the arguments for the ``assume_role`` operation, which at
-      least include ``RoleArn``. If ``RoleSessionName`` is not given, a randomly-generated
-      one will be used.
+    * *assume_role_kwargs* are the arguments for the ``assume_role`` operation, which
+      at least include ``RoleArn``. If ``RoleSessionName`` is not given, a
+      randomly-generated one will be used.
 
     Usage:
 
@@ -72,8 +72,8 @@ def assumed_role_client(
        created with ``boto3.client('sts')``.
      * *client_kwargs* are the keyword arguments you want to pass to the
        ``boto3.client()`` constructor.
-     * *assume_role_kwargs* are the arguments for the ``assume_role`` operation, which at
-       least include ``RoleArn``. If ``RoleSessionName`` is not given, a
+     * *assume_role_kwargs* are the arguments for the ``assume_role`` operation, which
+       at least include ``RoleArn``. If ``RoleSessionName`` is not given, a
        randomly-generated one will be used.
 
      Usage:

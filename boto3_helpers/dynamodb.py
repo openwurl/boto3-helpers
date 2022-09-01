@@ -57,7 +57,7 @@ def scan_table(ddb_table, **kwargs):
 
 def update_attributes(ddb_table, key, update_map, **kwargs):
     """Update a DyanmoDB table item and return the result:
-    
+
     * *ddb_table* is a ``boto3.resource('dynamodb').Table`` instance.
     * *key* is a mapping that identifies the item to update.
     * *update_map* is a mapping of item attributes to target values.
@@ -82,7 +82,7 @@ def update_attributes(ddb_table, key, update_map, **kwargs):
     ``ExpressionAttributeValues`` parameters.
 
     Equivalent to:
-    
+
     .. code-block:: python
 
         from boto3 import resource as boto3_resource

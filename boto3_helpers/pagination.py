@@ -1,7 +1,7 @@
 def yield_all_items(boto_client, method_name, list_key, **kwargs):
     """A helper function that simplifies retrieving items from API endpoints that
     require paging. Yields each item from every page:
-    
+
     * *boto_client* is a ``boto3.client()`` instance for the relevant service.
     * *method_name* is the name of the client method that requires paging.
     * *list_key* is the name of the top-level key in the method's response that
@@ -11,7 +11,7 @@ def yield_all_items(boto_client, method_name, list_key, **kwargs):
     EC2 example:
 
     .. code-block:: python
-    
+
         from boto3 import client as boto3_client
         from boto3_helpers.pagination import yield_all_items
 
