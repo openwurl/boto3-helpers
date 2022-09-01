@@ -66,7 +66,8 @@ class MediaTailorTests(TestCase):
             'TranscodeProfileName': '',
             'VideoContentSourceUrl': 'https://localhost/origin/hls/',
         }
-        put_resp = deepcopy(get_resp) | put_params
+        put_resp = deepcopy(get_resp)
+        put_resp.update(put_params)
         stubber.add_response('put_playback_configuration', put_resp, put_params)
 
         # Do the deed - we expect to get the put response back

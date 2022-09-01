@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10"]
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
 
     steps:
     - uses: actions/checkout@v3
@@ -18,7 +18,9 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        make requirements
+        python -m pip install -U pip
+        pip install .
+        pip install -U coverage flake8 wheel
     - name: Static checks
       run: |
         make check
@@ -26,8 +28,11 @@ jobs:
       run: |
         make coverage
     - name: Build docs
+      if: "matrix.python-version == '3.8'"
       run: |
+        pip install -U sphinx
         make docs
     - name: Build package
+      if: "matrix.python-version == '3.8'"
       run: |
         make package
