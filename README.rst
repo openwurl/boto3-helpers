@@ -62,4 +62,6 @@ This package provides helper functions for several similar actions in AWS, such 
 
 * Paging through S3 listings
 * Updating items in DynamoDB
-* Assuming roles with STS 
+* Assuming roles with STS
+
+See the `full documentation <git branch --set-upstream-to=origin/>`_.
