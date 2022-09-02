@@ -8,6 +8,12 @@ DynamoDB Helpers
 .. automodule:: boto3_helpers.dynamodb
     :members:
 
+Kinesis Helpers
+----------------
+
+.. automodule:: boto3_helpers.kinesis
+    :members:
+
 MediaTailor Helpers
 -------------------
 
