@@ -64,4 +64,4 @@ This package provides helper functions for several similar actions in AWS, such 
 * Updating items in DynamoDB
 * Assuming roles with STS
 
-See the `full documentation <git branch --set-upstream-to=origin/>`_.
+See the `full documentation <https://boto3-helpers.readthedocs.io>`_.
