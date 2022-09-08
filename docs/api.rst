@@ -8,6 +8,12 @@ DynamoDB Helpers
 .. automodule:: boto3_helpers.dynamodb
     :members:
 
+Lambda Helpers
+-------------------
+
+.. automodule:: boto3_helpers.awslambda
+    :members:
+
 MediaTailor Helpers
 -------------------
 
