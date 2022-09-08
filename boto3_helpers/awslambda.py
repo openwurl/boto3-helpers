@@ -6,7 +6,7 @@ def update_environment_variables(function_name, new_env, *, lambda_client=None):
     resulting environment.
 
     * *function_name* is the Lambda function name.
-    * *new_env* is a mapping with the new environment variables
+    * *new_env* is a mapping with the new environment variables.
     * *lambda_client* is a ``boto3.client('lambda')`` instance. If not given, one will
       be created with ``boto3.client('lambda')``.
 
