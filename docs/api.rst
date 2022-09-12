@@ -8,6 +8,12 @@ DynamoDB Helpers
 .. automodule:: boto3_helpers.dynamodb
     :members:
 
+EventBridge Helpers
+-------------------
+
+.. automodule:: boto3_helpers.events
+    :members:
+
 Lambda Helpers
 -------------------
 
