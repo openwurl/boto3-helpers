@@ -32,6 +32,12 @@ Pagination Helpers
 .. automodule:: boto3_helpers.pagination
     :members:
 
+SQS Helpers
+-----------
+
+.. automodule:: boto3_helpers.sqs
+    :members:
+
 STS Helpers
 -----------
 
