@@ -1,9 +1,10 @@
 from unittest import TestCase
+from unittest.mock import patch
 
 from boto3 import client as boto3_client
 from botocore.stub import Stubber
 
-from boto3_helpers.sqs import send_batches, _get_size
+from boto3_helpers.sqs import _get_size, delete_batches, send_batches
 
 
 class SQSTests(TestCase):
@@ -90,5 +91,68 @@ class SQSTests(TestCase):
                 sqs_client=sqs_client,
                 message_limit=5,
                 size_limit=49,
+            )
+        self.assertEqual(actual, expected)
+
+    @patch('boto3_helpers.sqs.token_hex', lambda x: '00' * x)
+    def test_delete_batches(self):
+        # Prepare the arguments
+        queue_url = 'https://sqs.test-region-1.amazonaws.com/000000000000/test-queue'
+        all_messages = [
+            {'ReceiptHandle': 'receipt-1', 'Body': 'message 1'},
+            {'ReceiptHandle': 'receipt-2', 'Body': 'message 2'},
+            {'ReceiptHandle': 'receipt-3', 'Body': 'message 3'},
+            {'ReceiptHandle': 'receipt-4', 'Body': 'message 4'},
+            {'ReceiptHandle': 'receipt-5', 'Id': '5'},
+            {'ReceiptHandle': 'receipt-6', 'Body': 'message 6'},
+        ]
+
+        # Set up the stubber
+        sqs_client = boto3_client('sqs', region_name='not-a-region')
+        stubber = Stubber(sqs_client)
+        expected = {'Successful': [], 'Failed': []}
+
+        batch_1 = all_messages[0:5]
+        delete_params_1 = {
+            'QueueUrl': queue_url,
+            'Entries': [
+                {'Id': '00000000-1', 'ReceiptHandle': 'receipt-1'},
+                {'Id': '00000000-2', 'ReceiptHandle': 'receipt-2'},
+                {'Id': '00000000-3', 'ReceiptHandle': 'receipt-3'},
+                {'Id': '00000000-4', 'ReceiptHandle': 'receipt-4'},
+                {'Id': '5', 'ReceiptHandle': 'receipt-5'},
+            ],
+        }
+        delete_resp_1 = {'Successful': [], 'Failed': []}
+        for i, message in enumerate(batch_1):
+            item = {'Id': str(i)}
+            delete_resp_1['Successful'].append(item)
+            expected['Successful'].append(item)
+        stubber.add_response('delete_message_batch', delete_resp_1, delete_params_1)
+
+        batch_2 = all_messages[5:]
+        delete_params_2 = {
+            'QueueUrl': queue_url,
+            'Entries': [{'ReceiptHandle': 'receipt-6', 'Id': '00000000-6'}],
+        }
+        delete_resp_2 = {'Successful': [], 'Failed': []}
+        for i, message in enumerate(batch_2):
+            item = {
+                'Id': str(i),
+                'SenderFault': True,
+                'Code': 'Unknown',
+                'Message': '?',
+            }
+            delete_resp_2['Failed'].append(item)
+            expected['Failed'].append(item)
+        stubber.add_response('delete_message_batch', delete_resp_2, delete_params_2)
+
+        # Do the deed
+        with stubber:
+            actual = delete_batches(
+                queue_url,
+                all_messages,
+                sqs_client=sqs_client,
+                message_limit=5,
             )
         self.assertEqual(actual, expected)
