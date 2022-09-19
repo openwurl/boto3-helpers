@@ -1,9 +1,8 @@
 boto3-helpers
 =============
 
-This is the documentation for the ``boto3_helpers`` package, a Python library that
-aims to provide a smoother interface for some of the functions in the AWS
-`boto3 <https://github.com/boto/boto3>`_ package.
+``boto3_helpers`` is a Python library that aims to provide a smoother interface for
+some of the functions in the AWS `boto3 <https://github.com/boto/boto3>`_ package.
  
 You know how to install it:
 
@@ -63,5 +62,7 @@ This package provides helper functions for several similar actions in AWS, such 
 * Paging through S3 listings
 * Updating items in DynamoDB
 * Assuming roles with STS
+* Sending and deleting messages with SQS
+* Pulling metric data from CloudWatch
 
-See the `full documentation <https://boto3-helpers.readthedocs.io>`_.
+See the `latest docs <https://boto3-helpers.readthedocs.io>`_ for more. 

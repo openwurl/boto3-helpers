@@ -39,8 +39,8 @@ def yield_metric_data(
 
     .. code-block:: python
 
-        from boto3_helpers.cloudwatch import yield_metric_data
         from datetime import datetime, timezone
+        from boto3_helpers.cloudwatch import yield_metric_data
 
         for dt, value in yield_metric_data(
             'AWS/S3',
@@ -48,10 +48,10 @@ def yield_metric_data(
             {'StorageType': 'AllStorageTypes', 'BucketName': 'example-bucket'},
             86400,
             'Maximum',
-            datetime.now(2022, 9, 1, 0, 0, 0, timezone.utc),
-            datetime.now(2022, 9, 16, 0, 0, 0, timezone.utc),
+            datetime(2022, 9, 1, 0, 0, 0, timezone.utc),
+            datetime(2022, 9, 16, 0, 0, 0, timezone.utc),
         ):
-            print(dt.isoformat(), value, sep='\t')
+            print(dt.isoformat(), value, sep=' ')
 
     This function is designed to simplify the common case of pulling all data for a
     single metric, which is cumbersome with the normal CloudWatch ``get_metric_data``

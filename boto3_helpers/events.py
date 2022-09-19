@@ -50,7 +50,7 @@ def describe_rule_with_targets(*, events_client=None, **kwargs):
                 rule_data['Arn'],
                 rule_data['ScheduleExpression'],
                 target['Arn'],
-                sep='\t'
+                sep=' '
             )
 
     .. note::
