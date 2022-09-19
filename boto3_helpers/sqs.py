@@ -10,23 +10,15 @@ def _get_size(message):
     # The size of the message body is the size of the UTF-8 representation
     ret = len(message['MessageBody'].encode('utf-8'))
 
-    # The size of the message attributes is computed as follows:
-    # 1. Encode the name: the length (4 bytes) and the UTF-8 bytes of the name.
-    # 2. Encode the data type: the length (4 bytes) and the UTF-8 bytes of the data
-    # type.
-    # 3. Encode the transport type (String or Binary) of the value (1 byte).
-    # 4a. For the String transport type, encode the attribute value: the length
-    # (4 bytes) and the UTF-8 bytes of the value.
-    # 4b. For the Binary transport type, encode the attribute value: the length
-    # (4 bytes) and the raw bytes of the value.
+    # All parts of the message attribute, including Name, DataType, and Value are part
+    # of the message size restriction
     for attr_name, attr_data in message.get('MessageAttributes', {}).items():
-        ret += 4 + len(attr_name.encode('utf-8'))
-        ret += 4 + len(attr_data['DataType'].encode('utf-8'))
+        ret += len(attr_name.encode('utf-8'))
+        ret += len(attr_data['DataType'].encode('utf-8'))
         if 'StringValue' in attr_data:
-            ret += 1 + 4 + len(attr_data['StringValue'].encode('utf-8'))
+            ret += len(attr_data['StringValue'].encode('utf-8'))
         elif 'BinaryValue' in attr_data:
-            ret += 1 + 4 + len(attr_data['BinaryValue'])
-        print(ret)
+            ret += len(attr_data['BinaryValue'])
 
     # MessageSystemAttributes don't count towards the total size of a message.
     return ret
@@ -43,7 +35,7 @@ def _get_batches(all_messages, message_limit, size_limit):
         message_size = _get_size(message)
         reached_size = (current_size + message_size) > size_limit
         reached_count = current_count == message_limit
-        if reached_size or reached_count:
+        if current_batch and (reached_size or reached_count):
             yield current_batch[:]
             del current_batch[:]
             current_size = 0
@@ -120,7 +112,7 @@ def send_batches(
         queue_url = 'https://sqs.test-region-1.amazonaws.com/000000000000/test-queue'
         all_messages = [
             {'MessageBody': 'Beautiful is better than ugly'},
-            {'MessageBody': 'Explicit is better than implicit', 'DelaySec': 120},
+            {'MessageBody': 'Explicit is better than implicit', 'DelaySeconds': 120},
             {'MessageBody': 'Simple is better than complex'},
             # Fill this in with an arbitrary number of messages
         ]

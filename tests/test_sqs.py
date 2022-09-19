@@ -15,7 +15,7 @@ class SQSTests(TestCase):
                 'data': {'DataType': 'Binary', 'BinaryValue': b'\x00' * 10},
             },
         }
-        self.assertEqual(_get_size(message), 104)
+        self.assertEqual(_get_size(message), 78)
 
     def test_send_batches(self):
         # Prepare the arguments
