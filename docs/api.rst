@@ -2,6 +2,12 @@ API Documentation
 =================
 
 
+CloudWatch Helpers
+------------------
+
+.. automodule:: boto3_helpers.cloudwatch
+    :members:
+
 DynamoDB Helpers
 ----------------
 
