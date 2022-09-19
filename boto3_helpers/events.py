@@ -98,7 +98,7 @@ def yield_rules_by_target(*, events_client=None, **kwargs):
                 rule_data['Arn'],
                 rule_data['ScheduleExpression'],
                 len(rule_data['Targets']),
-                sep='\t'
+                sep=' '
             )
 
     .. note::
@@ -152,7 +152,7 @@ def yield_rules_with_targets(*, events_client=None, **kwargs):
                 rule_data['Name'],
                 rule_data['ScheduleExpression'],
                 len(rule_data['Targets']),
-                sep='\t'
+                sep=' '
             )
 
     .. note::
