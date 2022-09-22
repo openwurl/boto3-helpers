@@ -2,6 +2,12 @@ API Documentation
 =================
 
 
+ARN Helpers
+------------------
+
+.. automodule:: boto3_helpers.arn
+    :members:
+
 CloudWatch Helpers
 ------------------
 
