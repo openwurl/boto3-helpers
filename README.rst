@@ -1,9 +1,8 @@
 boto3-helpers
 =============
 
-This is the documentation for the ``boto3_helpers`` package, a Python library that
-aims to provide a smoother interface for some of the functions in the AWS
-`boto3 <https://github.com/boto/boto3>`_ package.
+``boto3_helpers`` is a Python library that aims to provide a smoother interface for
+some of the functions in the AWS `boto3 <https://github.com/boto/boto3>`_ package.
  
 You know how to install it:
 
@@ -16,7 +15,7 @@ Have you ever seen anybody make this mistake?
 .. code-block:: python
 
     from boto3 import resource as boto3_resource
-    from boto3.dynamodb.conditions import Key, Attr
+    from boto3.dynamodb.conditions import Key
     
     # Don't do this; you'll miss out if there is more than one page
     ddb_table = boto3.resource('dynamodb').Table('example-table')
@@ -31,7 +30,7 @@ What they should have done is this:
 .. code-block:: python
 
     from boto3 import resource as boto3_resource
-    from boto3.dynamodb.conditions import Key, Attr
+    from boto3.dynamodb.conditions import Key
 
     # Loop through all the pages
     ddb_table = boto3.resource('dynamodb').Table('example-table')
@@ -49,7 +48,7 @@ With ``boto3_helpers``, you can do the right thing more easily:
 .. code-block:: python
 
         from boto3 import resource as boto3_resource
-        from boto3.dynamodb.conditions import Key, Attr
+        from boto3.dynamodb.conditions import Key
         from boto3_helpers.dynamodb import query_table
 
         ddb_table = boto3.resource('dynamodb').Table('example-table')
@@ -62,4 +61,8 @@ This package provides helper functions for several similar actions in AWS, such 
 
 * Paging through S3 listings
 * Updating items in DynamoDB
-* Assuming roles with STS 
+* Assuming roles with STS
+* Sending and deleting messages with SQS
+* Pulling metric data from CloudWatch
+
+See the `latest docs <https://boto3-helpers.readthedocs.io>`_ for more. 

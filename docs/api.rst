@@ -2,10 +2,34 @@ API Documentation
 =================
 
 
+ARN Helpers
+------------------
+
+.. automodule:: boto3_helpers.arn
+    :members:
+
+CloudWatch Helpers
+------------------
+
+.. automodule:: boto3_helpers.cloudwatch
+    :members:
+
 DynamoDB Helpers
 ----------------
 
 .. automodule:: boto3_helpers.dynamodb
+    :members:
+
+EventBridge Helpers
+-------------------
+
+.. automodule:: boto3_helpers.events
+    :members:
+
+Lambda Helpers
+-------------------
+
+.. automodule:: boto3_helpers.awslambda
     :members:
 
 Kinesis Helpers
@@ -13,6 +37,7 @@ Kinesis Helpers
 
 .. automodule:: boto3_helpers.kinesis
     :members:
+
 
 MediaTailor Helpers
 -------------------
@@ -24,6 +49,12 @@ Pagination Helpers
 ------------------
 
 .. automodule:: boto3_helpers.pagination
+    :members:
+
+SQS Helpers
+-----------
+
+.. automodule:: boto3_helpers.sqs
     :members:
 
 STS Helpers
