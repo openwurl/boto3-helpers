@@ -36,11 +36,9 @@ class ARNTests(TestCase):
             )
 
     def test_construct_arn_from_sts(self):
-        # Set up the stubber
         sts_client = boto3_client('sts', region_name='not-a-region')
         stubber = Stubber(sts_client)
 
-        # First is the get command
         get_resp = {
             'UserId': 'SomeUserID',
             'Account': '000000000000',
@@ -51,7 +49,6 @@ class ARNTests(TestCase):
         }
         stubber.add_response('get_caller_identity', get_resp, {})
 
-        # Do the deed - we expect to get the put response back
         with stubber:
             actual = construct_arn(
                 sts_client=sts_client,
