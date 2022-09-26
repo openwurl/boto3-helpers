@@ -44,6 +44,12 @@ Pagination Helpers
 .. automodule:: boto3_helpers.pagination
     :members:
 
+S3 Helpers
+-----------
+
+.. automodule:: boto3_helpers.s3
+    :members:
+
 SQS Helpers
 -----------
 
