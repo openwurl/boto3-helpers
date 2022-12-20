@@ -50,6 +50,12 @@ S3 Helpers
 .. automodule:: boto3_helpers.s3
     :members:
 
+Signed Request Helpers
+----------------------
+
+.. automodule:: boto3_helpers.signed_requests
+    :members:
+
 SQS Helpers
 -----------
 
