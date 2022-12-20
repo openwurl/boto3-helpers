@@ -14,7 +14,9 @@ class SigV4RequestException(Exception):
         self.content = content
 
 
-def sigv4_request(service, method, endpoint, client=None, operation_name=None):
+def sigv4_request(
+    service, method, endpoint, client=None, base_url=None, operation_name=None
+):
     """Make a signed request to the AWS API and return the JSON payload.
 
     * *service* is the AWS API service code
@@ -23,6 +25,8 @@ def sigv4_request(service, method, endpoint, client=None, operation_name=None):
       supply them as a query string here (e.g., ``?MaxResults=1``)
     * *client* is a ``boto3.client`` instance for the same account and region as your
       target. If not given, is created with ``boto3.client('sts')``
+    * *base_url* is the URL for the target AWS API. If not given, a guess will be made
+      based on the service name and client region.
     * *operation_name* is the name of the API operation to use when signing the request
 
     If the API response indicates an error,
@@ -52,8 +56,9 @@ def sigv4_request(service, method, endpoint, client=None, operation_name=None):
     """
     client = client or boto3_client('sts')
 
+    base_url = base_url or f'https://{service}.{client.meta.region_name}.amazonaws.com'
     endpoint = endpoint.lstrip('/')
-    url = f'https://{service}.{client.meta.region_name}.amazonaws.com/{endpoint}'
+    url = f'{base_url}/{endpoint}'
 
     request = AWSRequest(method=method, url=url)
     client._request_signer.sign(operation_name, request, signing_name=service)
