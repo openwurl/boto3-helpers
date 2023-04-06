@@ -13,7 +13,7 @@ class SigV4RequestTests(TestCase):
         )
 
         service = 'scheduler'
-        method = 'GET'
+        method = 'POST'
         endpoint = '/schedules?MaxResults=1'
         operation_name = 'ListSchedules'
         actual = sigv4_request(
@@ -22,6 +22,7 @@ class SigV4RequestTests(TestCase):
             endpoint,
             client=_client,
             operation_name=operation_name,
+            data='{"test": "payload"}',
         )
         expected = {'NextToken': None, 'Schedules': []}
         self.assertEqual(actual, expected)
@@ -29,6 +30,7 @@ class SigV4RequestTests(TestCase):
         sign_call = _client._request_signer.sign.call_args
         self.assertEqual(sign_call[0][0], operation_name)
         self.assertEqual(sign_call[0][1].method, method)
+        self.assertEqual(sign_call[0][1].data, '{"test": "payload"}')
         self.assertEqual(
             sign_call[0][1].url,
             'https://scheduler.test-region-1.amazonaws.com/schedules?MaxResults=1',
