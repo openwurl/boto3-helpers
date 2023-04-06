@@ -15,7 +15,7 @@ class SigV4RequestException(Exception):
 
 
 def sigv4_request(
-    service, method, endpoint, client=None, base_url=None, operation_name=None
+    service, method, endpoint, client=None, base_url=None, operation_name=None, **kwargs
 ):
     """Make a signed request to the AWS API and return the JSON payload.
 
@@ -28,6 +28,7 @@ def sigv4_request(
     * *base_url* is the URL for the target AWS API. If not given, a guess will be made
       based on the service name and client region.
     * *operation_name* is the name of the API operation to use when signing the request
+    * **kwargs** are passed on to an ``AWSRequest`` object.
 
     If the API response indicates an error,
     ``boto3_helpers.signed_requests.SigV4RequestException`` will be raised.
@@ -53,6 +54,19 @@ def sigv4_request(
 
     We could haved optionally supplied the ``operation_name`` as ``'ListSchedules'``.
 
+    Example: Invoking a Lambda function URL that uses the ``AWS_IAM`` auth type:
+
+    .. code-block:: python
+
+        from boto3_helpers.signed_requests import sigv4_request
+
+        resp = sigv4_request(
+            'lambda',
+            'POST',
+            '/',
+            base_url='https://660d26cd.lambda-url.test-region-1.on.aws',
+            data=dumps({'payload_key_1': 'payload_value_1'})
+        )
     """
     client = client or boto3_client('sts')
 
@@ -60,7 +74,7 @@ def sigv4_request(
     endpoint = endpoint.lstrip('/')
     url = f'{base_url}/{endpoint}'
 
-    request = AWSRequest(method=method, url=url)
+    request = AWSRequest(method=method, url=url, **kwargs)
     client._request_signer.sign(operation_name, request, signing_name=service)
     request.prepare()
     request.headers = dict(request.headers)
