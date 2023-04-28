@@ -46,9 +46,9 @@ def yield_all_items(boto_client, method_name, list_key, **kwargs):
             print(item['Key'])
 
     In this example, the ``list_key`` for S3's ``list_objects_v2`` is ``'Contents'``.
-    
+
     CloudFront example:
-    
+
     .. code-block:: python
 
         from boto3 import client as boto3_client
