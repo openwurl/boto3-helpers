@@ -1,3 +1,6 @@
+from jmespath import search as json_search
+
+
 def yield_all_items(boto_client, method_name, list_key, **kwargs):
     """A helper function that simplifies retrieving items from API endpoints that
     require paging. Yields each item from every page:
@@ -46,4 +49,4 @@ def yield_all_items(boto_client, method_name, list_key, **kwargs):
     """
     paginator = boto_client.get_paginator(method_name)
     for page in paginator.paginate(**kwargs):
-        yield from page.get(list_key, [])
+        yield from json_search(list_key, page) or []
