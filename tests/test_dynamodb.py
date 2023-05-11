@@ -114,7 +114,6 @@ class DynamoDBTests(TestCase):
     def test_update_attributes(self, mock_boto3_resource):
         # Set up the stubber
         ddb_resource = boto3_resource('dynamodb', region_name='not-a-region')
-        ddb_table = ddb_resource.Table('test-table')
         stubber = Stubber(ddb_resource.meta.client)
         mock_boto3_resource.return_value = ddb_resource
 
