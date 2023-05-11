@@ -1,5 +1,6 @@
 from decimal import Decimal
 from unittest import TestCase
+from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Attr as ddb_attr, Key as ddb_key
 from boto3 import resource as boto3_resource
@@ -109,11 +110,12 @@ class DynamoDBTests(TestCase):
         ]
         self.assertEqual(actual, expected)
 
-    def test_update_attributes(self):
+    @patch('boto3_helpers.dynamodb.boto3_resource', autospec=True)
+    def test_update_attributes(self, mock_boto3_resource):
         # Set up the stubber
         ddb_resource = boto3_resource('dynamodb', region_name='not-a-region')
-        ddb_table = ddb_resource.Table('test-table')
         stubber = Stubber(ddb_resource.meta.client)
+        mock_boto3_resource.return_value = ddb_resource
 
         # The function will create a string for UpdateExpression
         # and a dict for ExpressionAttributeValues
@@ -137,7 +139,7 @@ class DynamoDBTests(TestCase):
         # Do the deed
         with stubber:
             actual = update_attributes(
-                ddb_table,
+                'test-table',
                 {'username': 'janedoe', 'last_name': 'Doe'},
                 {'age': 26, 'weight_kg': 70},
                 ReturnValues='ALL_NEW',
