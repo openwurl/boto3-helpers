@@ -62,9 +62,14 @@ class MediaLiveTests(TestCase):
     def test_delete_schedule_action_chain(self):
         # Try deleting each action in a chain; the result should be the same each time.
         channel_id = '24601'
-        deletion_chain = ['chain_1', 'chain_1_1', 'chain_1_1_1', 'chain_1_2']
 
-        for delete_action_name in deletion_chain:
+        for delete_action_name, expected_deletes in (
+            ('chain_1', ['chain_1', 'chain_1_1', 'chain_1_1_1', 'chain_1_2']),
+            ('chain_1_1', ['chain_1_1', 'chain_1_1_1']),
+            ('chain_1_1_1', ['chain_1_1_1']),
+            ('chain_1_2', ['chain_1_2']),
+            ('chain_2', ['chain_2']),
+        ):
             with self.subTest(delete_action_name=delete_action_name):
                 # Set up the stubber
                 eml_client = boto3_client('medialive', region_name='not-a-region')
@@ -81,7 +86,7 @@ class MediaLiveTests(TestCase):
                 update_resp = {}
                 update_params = {
                     'ChannelId': channel_id,
-                    'Deletes': {'ActionNames': deletion_chain},
+                    'Deletes': {'ActionNames': expected_deletes},
                 }
                 stubber.add_response(
                     'batch_update_schedule', update_resp, update_params
@@ -92,36 +97,7 @@ class MediaLiveTests(TestCase):
                     actual = delete_schedule_action_chain(
                         channel_id, delete_action_name, eml_client=eml_client
                     )
-                self.assertEqual(actual, deletion_chain)
-
-    def test_delete_single(self):
-        # Delete a single action that's not part of a chain.
-        channel_id = '24601'
-        delete_action_name = 'chain_2'
-
-        # Set up the stubber
-        eml_client = boto3_client('medialive', region_name='not-a-region')
-        stubber = Stubber(eml_client)
-
-        # First command is describe_schedule
-        describe_resp = {'ScheduleActions': TEST_SCHEDULE_ACTIONS}
-        describe_params = {'ChannelId': channel_id}
-        stubber.add_response('describe_schedule', describe_resp, describe_params)
-
-        # Second command is batch_update_schedule
-        update_resp = {}
-        update_params = {
-            'ChannelId': channel_id,
-            'Deletes': {'ActionNames': [delete_action_name]},
-        }
-        stubber.add_response('batch_update_schedule', update_resp, update_params)
-
-        # Do the deed
-        with stubber:
-            actual = delete_schedule_action_chain(
-                channel_id, delete_action_name, eml_client=eml_client
-            )
-        self.assertEqual(actual, [delete_action_name])
+                self.assertEqual(actual, expected_deletes)
 
     def test_delete_not_found(self):
         # Try deleting a non-existent action.

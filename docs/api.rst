@@ -32,6 +32,12 @@ Lambda Helpers
 .. automodule:: boto3_helpers.awslambda
     :members:
 
+MediaLive Helpers
+-------------------
+
+.. automodule:: boto3_helpers.medialive
+    :members:
+
 MediaTailor Helpers
 -------------------
 
