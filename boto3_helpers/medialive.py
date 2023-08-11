@@ -14,12 +14,13 @@ PARENT_ACTION_PATH = (
 
 def _parse_action_chains(eml_actions):
     parent_map = {}
-    children_map = defaultdict(set)
     for schedule_action in eml_actions:
         action_name = schedule_action['ActionName']
-
         parent_name = json_search(PARENT_ACTION_PATH, schedule_action) or action_name
         parent_map[action_name] = parent_name
+
+    children_map = defaultdict(set)
+    for action_name, parent_name in parent_map.items():
         children_map[action_name].add(action_name)
 
         while True:
