@@ -6,7 +6,7 @@ from botocore.stub import Stubber
 from boto3_helpers.medialive import delete_schedule_action_chain
 
 TEST_SCHEDULE_ACTIONS = [
-    # One level down again
+    # One level down from the first chain
     {
         'ActionName': 'chain_1_2',
         'ScheduleActionStartSettings': {
