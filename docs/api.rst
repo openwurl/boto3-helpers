@@ -38,6 +38,12 @@ Kinesis Helpers
 .. automodule:: boto3_helpers.kinesis
     :members:
 
+=======
+MediaLive Helpers
+-------------------
+
+.. automodule:: boto3_helpers.medialive
+    :members:
 
 MediaTailor Helpers
 -------------------
@@ -49,6 +55,18 @@ Pagination Helpers
 ------------------
 
 .. automodule:: boto3_helpers.pagination
+    :members:
+
+S3 Helpers
+-----------
+
+.. automodule:: boto3_helpers.s3
+    :members:
+
+Signed Request Helpers
+----------------------
+
+.. automodule:: boto3_helpers.signed_requests
     :members:
 
 SQS Helpers

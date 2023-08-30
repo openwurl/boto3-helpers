@@ -4,9 +4,9 @@ from boto3 import client as boto3_client
 def update_playback_configuration(config_name, emt_client=None, **config_kwargs):
     """Do a partial update of a MediaTailor configuration and return the result:
 
+    * *config_name* is the name of the playback configuration that will be updated.
     * *emt_client* is a ``boto3.client('mediatailor')`` instance. If not given, is
       created with ``boto3.client('mediatailor')``.
-    * *config_name* is the name of the playback configuration that will be updated.
     * *config_kwargs* are passed directly to the ``put_playback_configuration`` method.
 
     Usage:
