@@ -73,9 +73,10 @@ def yield_available_shard_records(kinesis_client=None, **kwargs):
     while True:
         resp = kinesis_client.get_records(ShardIterator=shard_iterator)
         yield from resp.get('Records', [])
-        if not resp['MillisBehindLatest']:
+
+        shard_iterator = resp.get('NextShardIterator')
+        if (not resp['MillisBehindLatest']) or (not shard_iterator):
             break
-        shard_iterator = resp['NextShardIterator']
 
 
 def yield_available_stream_records(kinesis_client=None, **kwargs):
