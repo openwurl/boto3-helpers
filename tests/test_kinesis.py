@@ -139,8 +139,8 @@ class KinesisTests(TestCase):
         with stubber:
             actual = list(
                 yield_available_shard_records(
-                    'example-stream',
-                    shard_id,
+                    StreamName='example-stream',
+                    ShardId=shard_id,
                     ShardIteratorType='AT_TIMESTAMP',
                     Timestamp=dt,
                     kinesis_client=kinesis_client,
@@ -256,7 +256,7 @@ class KinesisTests(TestCase):
         with stubber:
             actual = list(
                 yield_available_stream_records(
-                    'example-stream', kinesis_client=kinesis_client
+                    StreamName='example-stream', kinesis_client=kinesis_client
                 )
             )
 
