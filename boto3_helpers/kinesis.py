@@ -61,8 +61,10 @@ def yield_available_shard_records(kinesis_client=None, **kwargs):
         from datetime import datetime, timedelta, timezone
         from boto3_helpers.kinesis import yield_available_shard_records
 
-        for record in yield_available_shard_records('example-stream', 'shard-0001'):
-            print(record['SequenceNumber], record['Data], sep='\t')
+        for record in yield_available_shard_records(
+            StreamName='example-stream', 'shard-0001'
+        ):
+            print(record['SequenceNumber'], record['Data'], sep='\t')
 
     """
     kinesis_client = kinesis_client or boto3_client('kinesis')
@@ -100,7 +102,7 @@ def yield_available_stream_records(kinesis_client=None, **kwargs):
         from boto3_helpers.kinesis import yield_available_stream_records
 
         for record in yield_available_stream_records(StreamName='example-stream'):
-            print(record['SequenceNumber], record['Data], sep='\t')
+            print(record['SequenceNumber'], record['Data'], sep='\t')
 
     Reading from a particular timestamp:
 
@@ -110,11 +112,11 @@ def yield_available_stream_records(kinesis_client=None, **kwargs):
         from boto3_helpers.kinesis import yield_available_stream_records
 
         for record in yield_available_stream_records(
-            'example-stream',
+            StreamName='example-stream',
             ShardIteratorType='AT_TIMESTAMP',
             Timestamp=datetime.now(timezone.utc) - timedelta(hours=1),
         ):
-            print(record['SequenceNumber], record['Data], sep='\t')
+            print(record['SequenceNumber'], record['Data'], sep='\t')
 
     .. note::
 
