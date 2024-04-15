@@ -1,4 +1,5 @@
 from boto3 import resource as boto3_resource
+from time import sleep
 
 
 def _table_or_name(x):
@@ -144,3 +145,59 @@ def update_attributes(ddb_table, key, update_map, **kwargs):
         ExpressionAttributeValues=attrib_values,
         **kwargs,
     )
+
+
+def batch_yield_items(
+    table_name,
+    all_keys,
+    ddb_resource=None,
+    batch_size=100,
+    backoff_base=0.1,
+    backoff_max=5,
+    **kwargs,
+):
+    """Do a series a DyanmoDB ``batch_get_item`` queries against a single table, taking
+    care of retries and paging. Yield the returned items as they are available.
+
+    * *table_name* is the name of the table.
+    * *all_keys* is an iterable of dictionaries with the keys for the
+      ``batch_get_item`` operation.
+    * *ddb_resource* is a ``boto3.resource('dynamodb')`` instance. If not supplied, one
+      will be created.
+    * *batch_size* is the number of items to request per page (default: 100).
+    * *backoff_base* is the value, in seconds, of the exponential backoff base for
+      retries.
+    * *backoff_max* is the value, in seconds, of the maximum time to wait between
+      retries.
+    * *kwargs* are passed directly to the the ``batch_get_item`` method.
+
+    Usage:
+
+    .. code-block:: python
+
+        from boto3_helpers.dynamodb import batch_yield_items
+
+        all_keys = [
+            {'primary_key': '1', 'sort_key', 'a'},
+            {'primary_key': '1', 'sort_key', 'b'},
+            {'primary_key': '2', 'sort_key', 'a'},
+            {'primary_key': '2', 'sort_key', 'b'},
+        ]
+        all_items = list('example-table', all_keys)
+    """
+    ddb_resource = ddb_resource or boto3_resource('dynamodb')
+
+    i = 0
+    unprocessed_keys = list(all_keys)
+    while True:
+        batch_keys = unprocessed_keys[:batch_size]
+        unprocessed_keys = unprocessed_keys[batch_size:]
+        resp = ddb_resource.batch_get_item(
+            RequestItems={table_name: {'Keys': batch_keys}}, **kwargs
+        )
+        yield from resp['Responses'][table_name]
+        unprocessed_keys += resp.get('UnprocessedKeys', {}).get(table_name, [])
+        if not unprocessed_keys:
+            break
+        sleep(min(backoff_base * (2**i), backoff_max))
+        i += 1
