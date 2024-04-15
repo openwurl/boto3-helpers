@@ -1,12 +1,17 @@
 from decimal import Decimal
 from unittest import TestCase
-from unittest.mock import patch
+from unittest.mock import call as MockCall, patch
 
 from boto3.dynamodb.conditions import Attr as ddb_attr, Key as ddb_key
 from boto3 import resource as boto3_resource
 from botocore.stub import Stubber
 
-from boto3_helpers.dynamodb import query_table, scan_table, update_attributes
+from boto3_helpers.dynamodb import (
+    batch_yield_items,
+    query_table,
+    scan_table,
+    update_attributes,
+)
 
 
 class DynamoDBTests(TestCase):
@@ -153,3 +158,79 @@ class DynamoDBTests(TestCase):
             }
         }
         self.assertEqual(actual, expected)
+
+    @patch('boto3_helpers.dynamodb.sleep', autospec=True)
+    @patch('boto3_helpers.dynamodb.boto3_resource', autospec=True)
+    def test_batch_yield_items(self, mock_boto3_resource, mock_sleep):
+        table_name = 'test-table'
+        all_keys = [
+            {'primary_key': '1', 'sort_key': 'a'},
+            {'primary_key': '1', 'sort_key': 'b'},
+            {'primary_key': '2', 'sort_key': 'a'},
+            {'primary_key': '2', 'sort_key': 'b'},
+            {'primary_key': '3', 'sort_key': 'a'},
+            {'primary_key': '3', 'sort_key': 'b'},
+        ]
+
+        mock_boto3_resource.return_value.batch_get_item.side_effect = [
+            {
+                'Responses': {table_name: all_keys[:3]},
+                'UnprocessedKeys': {table_name: all_keys[3:]},
+            },
+            {
+                'Responses': {table_name: all_keys[3:]},
+                'UnprocessedKeys': {},
+            },
+        ]
+        actual = list(batch_yield_items(table_name, all_keys[:], backoff_base=0.1))
+        self.assertEqual(actual, all_keys)
+
+        mock_sleep.assert_called_once_with(0.1)
+        mock_boto3_resource.assert_called_once_with('dynamodb')
+        self.assertEqual(mock_boto3_resource.return_value.batch_get_item.call_count, 2)
+
+    @patch('boto3_helpers.dynamodb.sleep', autospec=True)
+    @patch('boto3_helpers.dynamodb.boto3_resource', autospec=True)
+    def test_batch_yield_items_batch_size(self, mock_boto3_resource, mock_sleep):
+        table_name = 'test-table'
+        all_keys = [
+            {'primary_key': '1', 'sort_key': 'a'},
+            {'primary_key': '1', 'sort_key': 'b'},
+            {'primary_key': '2', 'sort_key': 'a'},
+            {'primary_key': '2', 'sort_key': 'b'},
+            {'primary_key': '3', 'sort_key': 'a'},
+            {'primary_key': '3', 'sort_key': 'b'},
+            {'primary_key': '4', 'sort_key': 'a'},
+            {'primary_key': '4', 'sort_key': 'b'},
+        ]
+
+        mock_boto3_resource.return_value.batch_get_item.side_effect = [
+            {
+                'Responses': {table_name: all_keys[:2]},
+                'UnprocessedKeys': {},
+            },
+            {
+                'Responses': {table_name: all_keys[2:4]},
+                'UnprocessedKeys': {},
+            },
+            {
+                'Responses': {table_name: all_keys[4:6]},
+                'UnprocessedKeys': {},
+            },
+            {
+                'Responses': {table_name: all_keys[6:8]},
+                'UnprocessedKeys': {},
+            },
+        ]
+        actual = list(
+            batch_yield_items(
+                table_name, all_keys[:], batch_size=2, backoff_base=0.1, backoff_max=0.2
+            )
+        )
+        self.assertEqual(actual, all_keys)
+
+        self.assertEqual(
+            mock_sleep.mock_calls, [MockCall(0.1), MockCall(0.2), MockCall(0.2)]
+        )
+        mock_boto3_resource.assert_called_once_with('dynamodb')
+        self.assertEqual(mock_boto3_resource.return_value.batch_get_item.call_count, 4)
