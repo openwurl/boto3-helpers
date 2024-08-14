@@ -9,10 +9,78 @@ from botocore.stub import Stubber
 from boto3_helpers.dynamodb import (
     batch_yield_items,
     fix_numbers,
+    load_dynamodb_json,
     query_table,
     scan_table,
     update_attributes,
 )
+
+SCAN_RESPONSE = """\
+{
+    "Items": [
+        {
+            "bin_set": {
+                "BS": [
+                    "dGhpcyB0ZXh0IGlzIGJhc2U2NC1lbmNvZGVk"
+                ]
+            },
+            "string_set": {
+                "SS": [
+                    "ss_1",
+                    "ss_2"
+                ]
+            },
+            "number_int": {
+                "N": "1"
+            },
+            "number_set": {
+                "NS": [
+                    "1.1",
+                    "1"
+                ]
+            },
+            "string_literal": {
+                "S": "s"
+            },
+            "list_value": {
+                "L": [
+                    {
+                        "S": "sl_1"
+                    },
+                    {
+                        "N": "1"
+                    }
+                ]
+            },
+            "bin_value": {
+                "B": "dGhpcyB0ZXh0IGlzIGJhc2U2NC1lbmNvZGVk"
+            },
+            "bool_value": {
+                "BOOL": true
+            },
+            "null_value": {
+                "NULL": true
+            },
+            "number_float": {
+                "N": "1.1"
+            },
+            "map_value": {
+                "M": {
+                    "n_key": {
+                        "N": "1.1"
+                    },
+                    "s_key": {
+                        "S": "s_value"
+                    }
+                }
+            }
+        }
+    ],
+    "Count": 1,
+    "ScannedCount": 1,
+    "ConsumedCapacity": null
+}
+"""
 
 
 class DynamoDBTests(TestCase):
@@ -276,3 +344,51 @@ class DynamoDBTests(TestCase):
             'map_value': {'n_key': 1.1, 's_key': 's_value'},
         }
         self.assertEqual(actual, expected)
+
+    def test_load_dynamodb_json_scan(self):
+        actual = load_dynamodb_json(SCAN_RESPONSE)
+        expected = {
+            'Items': [
+                {
+                    'bin_set': {b'this text is base64-encoded'},
+                    'string_set': {'ss_1', 'ss_2'},
+                    'number_int': 1,
+                    'number_set': {1.1, 1},
+                    'string_literal': 's',
+                    'list_value': ['sl_1', 1],
+                    'bin_value': b'this text is base64-encoded',
+                    'bool_value': True,
+                    'null_value': None,
+                    'number_float': 1.1,
+                    'map_value': {'n_key': 1.1, 's_key': 's_value'},
+                }
+            ],
+            'Count': 1,
+            'ScannedCount': 1,
+            'ConsumedCapacity': None,
+        }
+        self.assertEqual(actual, expected)
+
+    def test_load_dynamodb_json_get(self):
+        i = 0
+        for text, use_decimal, expected in (
+            (
+                '{"Item": {"some_number": {"N": "100"}}}',
+                False,
+                {'Item': {'some_number': 100}},
+            ),
+            (
+                '{"Item": {"some_number": {"N": "100.1"}}}',
+                False,
+                {'Item': {'some_number': 100.1}},
+            ),
+            (
+                '{"Item": {"some_number": {"N": "100.1"}}}',
+                True,
+                {'Item': {'some_number': Decimal('100.1')}},
+            ),
+        ):
+            i += 1
+            with self.subTest(i=i):
+                actual = load_dynamodb_json(text, use_decimal=use_decimal)
+                self.assertEqual(actual, expected)
