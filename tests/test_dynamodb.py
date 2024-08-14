@@ -8,6 +8,7 @@ from botocore.stub import Stubber
 
 from boto3_helpers.dynamodb import (
     batch_yield_items,
+    fix_numbers,
     query_table,
     scan_table,
     update_attributes,
@@ -234,3 +235,44 @@ class DynamoDBTests(TestCase):
         )
         mock_boto3_resource.assert_called_once_with('dynamodb')
         self.assertEqual(mock_boto3_resource.return_value.batch_get_item.call_count, 4)
+
+    def test_fix_numbers(self):
+        # Set up the stubber
+        ddb_resource = boto3_resource('dynamodb', region_name='not-a-region')
+        ddb_table = ddb_resource.Table('test-table')
+        stubber = Stubber(ddb_resource.meta.client)
+
+        # The first query will return a single page of results
+        resp = {
+            'Item': {
+                'string_set': {'SS': ['ss_1', 'ss_2']},
+                'number_int': {'N': '1'},
+                'number_set': {'NS': ['1.1', '1']},
+                'TestKey': {'S': 'test-key'},
+                'list_value': {'L': [{'S': 'sl_1'}, {'N': '1'}]},
+                'bool_value': {'BOOL': True},
+                'null_value': {'NULL': True},
+                'number_float': {'N': '1.1'},
+                'map_value': {'M': {'n_key': {'N': '1.1'}, 's_key': {'S': 's_value'}}},
+            }
+        }
+        params = {'TableName': 'test-table', 'Key': {'TestKey': 'test-key'}}
+        stubber.add_response('get_item', resp, params)
+
+        # Do the deed
+        with stubber:
+            item = ddb_table.get_item(Key={'TestKey': 'test-key'})['Item']
+            actual = fix_numbers(item)
+
+        expected = {
+            'string_set': {'ss_1', 'ss_2'},
+            'number_int': 1,
+            'number_set': {1, 1.1},
+            'TestKey': 'test-key',
+            'list_value': ['sl_1', 1],
+            'bool_value': True,
+            'null_value': None,
+            'number_float': 1.1,
+            'map_value': {'n_key': 1.1, 's_key': 's_value'},
+        }
+        self.assertEqual(actual, expected)

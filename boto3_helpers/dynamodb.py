@@ -1,5 +1,20 @@
 from boto3 import resource as boto3_resource
+from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
+
 from time import sleep
+
+
+class CustomTypeDeserializer(TypeDeserializer):
+    def __init__(self, *args, use_decimal=False, **kwargs):
+        self.use_decimal = use_decimal
+        super().__init__(*args, **kwargs)
+
+    def _deserialize_n(self, value):
+        if self.use_decimal:
+            return super()._deserialize_n(value)
+
+        ret = float(value)
+        return int(ret) if ret.is_integer() else ret
 
 
 def _table_or_name(x):
@@ -201,3 +216,28 @@ def batch_yield_items(
             break
         sleep(min(backoff_base * (2**i), backoff_max))
         i += 1
+
+
+def fix_numbers(item):
+    """``boto3`` DB infamously deserializes numeric types from DynamoDB to
+    Python ``Decimal`` objects. This function changes these objects into
+    ``int`` objects and ``float`` objects.
+
+    .. code-block:: python
+
+        from boto3 import resource as boto3_resource
+        from boto3_helpers.dynamodb import fix_numbers
+
+        ddb_resource = boto3_resource('dynamodb')
+        ddb_table = ddb_resource.Table('example-table')
+        resp = ddb_table.get_item(Key={'primary_key': 'FirstKey'})
+        item = resp['Item']
+        fixed_item = fix_numbers(item)
+
+    Note that ``float`` objects may not be appropriate for all numeric computing needs,
+    so think about what your application needs before using this function.
+    """
+    s = TypeSerializer().serialize
+    d = CustomTypeDeserializer().deserialize
+    wire_format = {k: s(v) for k, v in item.items()}
+    return {k: d(v) for k, v in wire_format.items()}
