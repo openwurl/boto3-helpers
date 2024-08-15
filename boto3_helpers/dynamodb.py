@@ -1,13 +1,23 @@
+from base64 import b64decode
+from json import loads
+
 from boto3 import resource as boto3_resource
 from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
 
 from time import sleep
 
 
-class CustomTypeDeserializer(TypeDeserializer):
-    def __init__(self, *args, use_decimal=False, **kwargs):
+class _CustomTypeDeserializer(TypeDeserializer):
+    def __init__(self, *args, use_decimal=False, decode_binary=False, **kwargs):
         self.use_decimal = use_decimal
+        self.decode_binary = decode_binary
         super().__init__(*args, **kwargs)
+
+    def _deserialize_b(self, value):
+        if self.decode_binary:
+            return b64decode(value)
+
+        return super()._deserialize_b(value)
 
     def _deserialize_n(self, value):
         if self.use_decimal:
@@ -219,7 +229,7 @@ def batch_yield_items(
 
 
 def fix_numbers(item):
-    """``boto3`` DB infamously deserializes numeric types from DynamoDB to
+    """``boto3`` infamously deserializes numeric types from DynamoDB to
     Python ``Decimal`` objects. This function changes these objects into
     ``int`` objects and ``float`` objects.
 
@@ -238,6 +248,40 @@ def fix_numbers(item):
     so think about what your application needs before using this function.
     """
     s = TypeSerializer().serialize
-    d = CustomTypeDeserializer().deserialize
+    d = _CustomTypeDeserializer().deserialize
     wire_format = {k: s(v) for k, v in item.items()}
     return {k: d(v) for k, v in wire_format.items()}
+
+
+def load_dynamodb_json(text, use_decimal=False):
+    """The DynamoDB API returns JSON data with typing information. This function
+    deserializes this JSON format into standard Python types.
+
+    .. code-block:: python
+
+        from boto3 import resource as load_dynamodb_json
+
+        text = '{"Item": {"some_number": {"N": "100"}}}'
+        info = load_dynamodb_json(text)
+        assert info['Item']['some_number'] == 100
+
+    JSON from the ``GetItem``, ``Query``, and ``Scan`` API endpoints is supported.
+
+    If ``use_decimal`` is ``True``, numeric types will be deserialized to
+    ``decimal.Decimal`` objects. This matches the ``boto3`` client behavior, but
+    is often inconvenient.
+    """
+    d = _CustomTypeDeserializer(use_decimal=use_decimal, decode_binary=True).deserialize
+    ret = {}
+    for key, value in loads(text).items():
+        if key == 'Item':
+            ret['Item'] = {k: d(v) for k, v in value.items()}
+        elif key == 'Items':
+            all_items = []
+            for item in value:
+                all_items.append({k: d(v) for k, v in item.items()})
+            ret['Items'] = all_items
+        else:
+            ret[key] = value
+
+    return ret
