@@ -1,7 +1,10 @@
 from unittest import TestCase
 from unittest.mock import MagicMock
 
-from boto3_helpers.s3 import query_object
+from boto3 import client as boto3_client
+from botocore.stub import Stubber
+
+from boto3_helpers.s3 import head_bucket, query_object
 
 
 class QueryObjectTests(TestCase):
@@ -68,3 +71,47 @@ class QueryObjectTests(TestCase):
             InputSerialization=input_serialization,
             OutputSerialization={'JSON': {}},
         )
+
+
+class HeadBucketTest(TestCase):
+    def test_exists(self):
+        mock_s3_client = boto3_client('s3', region_name='not-a-region')
+        stubber = Stubber(mock_s3_client)
+        params = {'Bucket': 'example'}
+        resp = {}
+        stubber.add_response('head_bucket', resp, params)
+
+        with stubber:
+            actual = head_bucket('example', s3_client=mock_s3_client)
+
+        self.assertEqual(actual, resp)
+
+    def test_not_exists(self):
+        mock_s3_client = boto3_client('s3', region_name='not-a-region')
+        stubber = Stubber(mock_s3_client)
+        params = {'Bucket': 'example'}
+        stubber.add_client_error(
+            'head_bucket',
+            service_error_code='404',
+            service_message='The specified bucket does not exist.',
+            http_status_code=404,
+            expected_params=params,
+        )
+
+        with stubber, self.assertRaises(mock_s3_client.exceptions.NoSuchBucket):
+            head_bucket('example', s3_client=mock_s3_client)
+
+    def test_other_error(self):
+        mock_s3_client = boto3_client('s3', region_name='not-a-region')
+        stubber = Stubber(mock_s3_client)
+        params = {'Bucket': 'example'}
+        stubber.add_client_error(
+            'head_bucket',
+            service_error_code='403',
+            service_message='Some other bad thing happened.',
+            http_status_code=403,
+            expected_params=params,
+        )
+
+        with stubber, self.assertRaises(mock_s3_client.exceptions.ClientError):
+            head_bucket('example', s3_client=mock_s3_client)
