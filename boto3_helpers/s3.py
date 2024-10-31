@@ -82,3 +82,40 @@ def query_object(bucket, key, query, input_format, *, s3_client=None, **kwargs):
                     yield loads(line)
                 else:
                     data[:] = line
+
+
+def head_bucket(bucket, s3_client=None, **kwargs):
+    """Perform a ``HeadBucket`` API call and return the response. If the given
+    *bucket* does not exist, raise ``s3_client.exceptions.NoSuchBucket``
+
+    * *bucket* is the S3 bucket to use
+    * *s3_client* is a ``boto3.client('s3')`` instance. If not given,
+      one will be created with ``boto3.client('s3')``.
+    * *kwargs* are passed to the ``head_bucket`` method.
+
+    The ``boto3`` docs infamously claim that the `head_bucket` method can raise
+    ``S3.Client.exceptions.NoSuchBucket``, leading reasonable people to assume that
+    this exception will be raised if the requested *bucket* does not exist. Alas,
+    it raises a generic ``ClientError`` instead. This function fixes the problem.
+
+    .. code-block:: python
+
+        from boto3 import client as boto3_client
+        from boto3_helpers.s3 import head_bucket
+
+        s3_client = boto3_client('s3')
+        try:
+            head_bucket('ExampleBucket', s3_client=s3_client)
+        except s3_client.exceptions.NoSuchBucket:
+            print('No such bucket')
+        else:
+            print('That bucket exists')
+    """
+    s3_client = s3_client or boto3_client('s3')
+    kwargs['Bucket'] = bucket
+    try:
+        return s3_client.head_bucket(**kwargs)
+    except s3_client.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == '404':
+            raise s3_client.exceptions.NoSuchBucket(e.response, e.operation_name)
+        raise
