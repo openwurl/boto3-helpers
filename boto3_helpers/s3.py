@@ -121,17 +121,18 @@ def head_bucket(bucket, s3_client=None, **kwargs):
         raise
 
 
-def create_bucket(bucket, s3_client=None, **kwargs):
-    """Perform a ``CreateBucket`` API call and return the response.
+def create_bucket(bucket, region_name='us-east-1', s3_client=None, **kwargs):
+    """Create a bucket in the given *region_name*.
 
     * *bucket* is the S3 bucket to use
+    * *region_name* is the region to use.
     * *s3_client* is a ``boto3.client('s3')`` instance. If not given,
       one will be created with ``boto3.client('s3')``.
     * *kwargs* are passed to the ``create_bucket`` method.
 
-    LocationConstraint allows to specify which region to create the bucket in.
-    The default isus-east-1 but ironically if you specify us-east-1 boto3 will
-    raise an error
+    This helper smooths out a quirk in the S3 API. To create buckets outsied of
+    the us-east-1 region, you must specify a ``LocationConstraint``.
+    But to create a bucket in us-east-1, you must not use a ``LocationConstraint``.
 
     .. code-block:: python
 
@@ -139,15 +140,17 @@ def create_bucket(bucket, s3_client=None, **kwargs):
         from boto3_helpers.s3 import create_bucket
 
         s3_client = boto3_client('s3')
-        create_bucket('ExampleBucket', s3_client=s3_client)
+        create_bucket('ExampleBucket', region_name='us-west-1', s3_client=s3_client)
     """
     s3_client = s3_client or boto3_client('s3')
     kwargs['Bucket'] = bucket
-    try:
-        if kwargs['CreateBucketConfiguration']['LocationConstraint'] == 'us-east-1':
-            del kwargs['CreateBucketConfiguration']['LocationConstraint']
-        if not kwargs['CreateBucketConfiguration']:
-            del kwargs['CreateBucketConfiguration']
-    except KeyError:
-        pass
+
+    create_bucket_configuration = kwargs.pop('CreateBucketConfiguration', {})
+    create_bucket_configuration.pop('LocationConstraint', None)
+    if region_name != 'us-east-1':
+        create_bucket_configuration['LocationConstraint'] = region_name
+
+    if create_bucket_configuration:
+        kwargs['CreateBucketConfiguration'] = create_bucket_configuration
+
     return s3_client.create_bucket(**kwargs)
