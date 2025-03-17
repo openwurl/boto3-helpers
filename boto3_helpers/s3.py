@@ -139,7 +139,7 @@ def create_bucket(bucket, region_name='us-east-1', s3_client=None, **kwargs):
         from boto3 import client as boto3_client
         from boto3_helpers.s3 import create_bucket
 
-        s3_client = boto3_client('s3')
+        s3_client = boto3_client('s3', region_name='us-west-1')
         create_bucket('ExampleBucket', region_name='us-west-1', s3_client=s3_client)
     """
     s3_client = s3_client or boto3_client('s3')
