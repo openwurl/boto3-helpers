@@ -130,7 +130,7 @@ def create_bucket(bucket, region_name='us-east-1', s3_client=None, **kwargs):
       one will be created with ``boto3.client('s3')``.
     * *kwargs* are passed to the ``create_bucket`` method.
 
-    This helper smooths out a quirk in the S3 API. To create buckets outsied of
+    This helper smooths out a quirk in the S3 API. To create buckets outside of
     the us-east-1 region, you must specify a ``LocationConstraint``.
     But to create a bucket in us-east-1, you must not use a ``LocationConstraint``.
 
@@ -140,7 +140,11 @@ def create_bucket(bucket, region_name='us-east-1', s3_client=None, **kwargs):
         from boto3_helpers.s3 import create_bucket
 
         s3_client = boto3_client('s3', region_name='us-west-1')
-        create_bucket('ExampleBucket', region_name='us-west-1', s3_client=s3_client)
+        create_bucket(
+            'ExampleBucket',
+            region_name='us-west-1',
+            s3_client=s3_client
+        )
     """
     s3_client = s3_client or boto3_client('s3')
     kwargs['Bucket'] = bucket
