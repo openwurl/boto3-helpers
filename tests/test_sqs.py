@@ -10,9 +10,9 @@ from boto3_helpers.sqs import _get_size, delete_batches, send_batches
 class SQSTests(TestCase):
     def test_get_size(self):
         message = {
-            'MessageBody': '\U0001F574' * 10,
+            'MessageBody': '\U0001f574' * 10,
             'MessageAttributes': {
-                'text': {'DataType': 'String', 'StringValue': '\U0001F574' * 2},
+                'text': {'DataType': 'String', 'StringValue': '\U0001f574' * 2},
                 'data': {'DataType': 'Binary', 'BinaryValue': b'\x00' * 10},
             },
         }
