@@ -118,7 +118,7 @@ class HeadBucketTest(TestCase):
 
 
 class CreateBucketTest(TestCase):
-    def test_successful_create(self):
+    def test_create_default(self):
         mock_s3_client = boto3_client('s3', region_name='not-a-region')
         stubber = Stubber(mock_s3_client)
         params = {'Bucket': 'example'}
@@ -127,6 +127,23 @@ class CreateBucketTest(TestCase):
 
         with stubber:
             actual = create_bucket('example', s3_client=mock_s3_client)
+
+        self.assertEqual(actual, resp)
+
+    def test_create_elsewhere(self):
+        mock_s3_client = boto3_client('s3', region_name='not-a-region')
+        stubber = Stubber(mock_s3_client)
+        params = {
+            'Bucket': 'example',
+            'CreateBucketConfiguration': {'LocationConstraint': 'us-west-1'},
+        }
+        resp = {}
+        stubber.add_response('create_bucket', resp, params)
+
+        with stubber:
+            actual = create_bucket(
+                'example', region_name='us-west-1', s3_client=mock_s3_client
+            )
 
         self.assertEqual(actual, resp)
 
