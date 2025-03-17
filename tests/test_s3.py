@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 from boto3 import client as boto3_client
 from botocore.stub import Stubber
 
-from boto3_helpers.s3 import head_bucket, query_object
+from boto3_helpers.s3 import create_bucket, head_bucket, query_object
 
 
 class QueryObjectTests(TestCase):
@@ -115,3 +115,64 @@ class HeadBucketTest(TestCase):
 
         with stubber, self.assertRaises(mock_s3_client.exceptions.ClientError):
             head_bucket('example', s3_client=mock_s3_client)
+
+
+class CreateBucketTest(TestCase):
+    def test_create_default(self):
+        mock_s3_client = boto3_client('s3', region_name='not-a-region')
+        stubber = Stubber(mock_s3_client)
+        params = {'Bucket': 'example'}
+        resp = {}
+        stubber.add_response('create_bucket', resp, params)
+
+        with stubber:
+            actual = create_bucket('example', s3_client=mock_s3_client)
+
+        self.assertEqual(actual, resp)
+
+    def test_create_elsewhere(self):
+        mock_s3_client = boto3_client('s3', region_name='not-a-region')
+        stubber = Stubber(mock_s3_client)
+        params = {
+            'Bucket': 'example',
+            'CreateBucketConfiguration': {'LocationConstraint': 'us-west-1'},
+        }
+        resp = {}
+        stubber.add_response('create_bucket', resp, params)
+
+        with stubber:
+            actual = create_bucket(
+                'example', region_name='us-west-1', s3_client=mock_s3_client
+            )
+
+        self.assertEqual(actual, resp)
+
+    def test_bucket_already_exists(self):
+        mock_s3_client = boto3_client('s3', region_name='not-a-region')
+        stubber = Stubber(mock_s3_client)
+        params = {'Bucket': 'example'}
+        stubber.add_client_error(
+            'create_bucket',
+            service_error_code='BucketAlreadyExists',
+            service_message='The requested bucket name is not available.',
+            http_status_code=409,
+            expected_params=params,
+        )
+
+        with stubber, self.assertRaises(mock_s3_client.exceptions.ClientError):
+            create_bucket('example', s3_client=mock_s3_client)
+
+    def test_other_error(self):
+        mock_s3_client = boto3_client('s3', region_name='not-a-region')
+        stubber = Stubber(mock_s3_client)
+        params = {'Bucket': 'example'}
+        stubber.add_client_error(
+            'create_bucket',
+            service_error_code='403',
+            service_message='Some other bad thing happened.',
+            http_status_code=403,
+            expected_params=params,
+        )
+
+        with stubber, self.assertRaises(mock_s3_client.exceptions.ClientError):
+            create_bucket('example', s3_client=mock_s3_client)
