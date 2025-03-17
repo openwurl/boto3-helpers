@@ -1,7 +1,7 @@
 # What we want
-black==24.8.0
+black==25.1.0
 coverage==7.6.1
-flake8==7.1.1
+flake8==7.1.2
 Sphinx==7.4.7
 twine==5.1.1
 wheel==0.44.0
