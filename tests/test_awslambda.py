@@ -92,9 +92,7 @@ class AWSLambdaTests(TestCase):
 
         # Do the deed - we expect to get the publish response back
         with stubber:
-            actual = delete_old_versions(
-                function_name, 2, lambda_client=lambda_client
-            )
+            actual = delete_old_versions(function_name, 2, lambda_client=lambda_client)
 
         self.assertEqual(actual, ['1', '2', '3'])
 
@@ -113,8 +111,6 @@ class AWSLambdaTests(TestCase):
 
         # Do the deed - we expect to get the publish response back
         with stubber:
-            actual = delete_old_versions(
-                function_name, 2, lambda_client=lambda_client
-            )
+            actual = delete_old_versions(function_name, 2, lambda_client=lambda_client)
 
         self.assertEqual(actual, [])

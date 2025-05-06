@@ -53,7 +53,7 @@ def delete_old_versions(function_name, keep_count, lambda_client=None, **kwargs)
     * *keep_count* is the number of versions to keep active.
     * *lambda_client* is a ``boto3.client('lambda')`` instance. If not given, one will
       be created with ``boto3.client('lambda')``.
-      
+
     Returns a list of the versions that were removed.
 
     Usage:
@@ -93,9 +93,7 @@ def delete_old_versions(function_name, keep_count, lambda_client=None, **kwargs)
     # Remove all but the requested number of versions.
     for version_info in all_versions[:-keep_count]:
         version_id = version_info['Version']
-        lambda_client.delete_function(
-            FunctionName=function_name, Qualifier=version_id
-        )
+        lambda_client.delete_function(FunctionName=function_name, Qualifier=version_id)
         ret.append(version_id)
 
     return ret
