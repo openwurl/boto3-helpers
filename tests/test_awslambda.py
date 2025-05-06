@@ -64,7 +64,7 @@ class AWSLambdaTests(TestCase):
         # First is the call for the first page of list_versions_by_function
         list_params_1 = {'FunctionName': function_name}
         list_resp_1 = {
-            'Versions': [{'Version': '1'}, {'Version': '2'}],
+            'Versions': [{'Version': '1'}, {'Version': '2'}, {'Version': '$LATEST'}],
             'NextMarker': 'page-2',
         }
         stubber.add_response('list_versions_by_function', list_resp_1, list_params_1)
@@ -106,7 +106,9 @@ class AWSLambdaTests(TestCase):
 
         # First is the call for the first page of list_versions_by_function
         list_params_1 = {'FunctionName': function_name}
-        list_resp_1 = {'Versions': [{'Version': '4'}, {'Version': '5'}]}
+        list_resp_1 = {
+            'Versions': [{'Version': '$LATEST'}, {'Version': '4'}, {'Version': '5'}]
+        }
         stubber.add_response('list_versions_by_function', list_resp_1, list_params_1)
 
         # Do the deed - we expect to get the publish response back

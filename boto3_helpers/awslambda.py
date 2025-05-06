@@ -75,23 +75,24 @@ def delete_old_versions(function_name, keep_count, lambda_client=None, **kwargs)
     lambda_client = lambda_client or boto3_client('lambda')
 
     # Get the current list of versions
-    all_versions = sorted(
-        yield_all_items(
-            lambda_client,
-            'list_versions_by_function',
-            'Versions',
-            FunctionName=function_name,
-        ),
-        key=lambda x: int(x['Version']),
-    )
+    all_version_info = []
+    for version_info in yield_all_items(
+        lambda_client,
+        'list_versions_by_function',
+        'Versions',
+        FunctionName=function_name,
+    ):
+        if version_info['Version'] != '$LATEST':
+            all_version_info.append(version_info)
 
     # If there are not too many versions, bail out.
     ret = []
-    if len(all_versions) <= keep_count:
+    if len(all_version_info) <= keep_count:
         return ret
 
     # Remove all but the requested number of versions.
-    for version_info in all_versions[:-keep_count]:
+    all_version_info.sort(key=lambda x: int(x['Version']))
+    for version_info in all_version_info[:-keep_count]:
         version_id = version_info['Version']
         lambda_client.delete_function(FunctionName=function_name, Qualifier=version_id)
         ret.append(version_id)
