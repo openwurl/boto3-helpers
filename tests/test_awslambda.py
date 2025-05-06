@@ -5,8 +5,8 @@ from boto3 import client as boto3_client
 from botocore.stub import Stubber
 
 from boto3_helpers.awslambda import (
+    delete_old_versions,
     update_environment_variables,
-    publish_version_limited,
 )
 
 
@@ -54,19 +54,14 @@ class AWSLambdaTests(TestCase):
 
         self.assertEqual(actual, combined_env)
 
-    def test_publish_version_limited(self):
+    def test_delete_old_versions(self):
         # Set up the stubber
         lambda_client = boto3_client('lambda', region_name='not-a-region')
         stubber = Stubber(lambda_client)
 
         function_name = 'TestFunction'
 
-        # First is the publish_version command
-        publish_params = {'FunctionName': function_name}
-        publish_resp = {'Version': '5'}
-        stubber.add_response('publish_version', publish_resp, publish_params)
-
-        # Next is the call for the first page of list_versions_by_function
+        # First is the call for the first page of list_versions_by_function
         list_params_1 = {'FunctionName': function_name}
         list_resp_1 = {
             'Versions': [{'Version': '1'}, {'Version': '2'}],
@@ -97,13 +92,13 @@ class AWSLambdaTests(TestCase):
 
         # Do the deed - we expect to get the publish response back
         with stubber:
-            actual = publish_version_limited(
+            actual = delete_old_versions(
                 function_name, 2, lambda_client=lambda_client
             )
 
-        self.assertEqual(actual, publish_resp)
+        self.assertEqual(actual, ['1', '2', '3'])
 
-    def test_publish_version_limited_no_deletes(self):
+    def test_delete_old_versions_no_deletes(self):
         # Test that no deletes are made if there are fewer than the limit
         # Set up the stubber
         lambda_client = boto3_client('lambda', region_name='not-a-region')
@@ -111,20 +106,15 @@ class AWSLambdaTests(TestCase):
 
         function_name = 'TestFunction'
 
-        # First is the publish_version command
-        publish_params = {'FunctionName': function_name}
-        publish_resp = {'Version': '5'}
-        stubber.add_response('publish_version', publish_resp, publish_params)
-
-        # Next is the call for the first page of list_versions_by_function
+        # First is the call for the first page of list_versions_by_function
         list_params_1 = {'FunctionName': function_name}
         list_resp_1 = {'Versions': [{'Version': '4'}, {'Version': '5'}]}
         stubber.add_response('list_versions_by_function', list_resp_1, list_params_1)
 
         # Do the deed - we expect to get the publish response back
         with stubber:
-            actual = publish_version_limited(
+            actual = delete_old_versions(
                 function_name, 2, lambda_client=lambda_client
             )
 
-        self.assertEqual(actual, publish_resp)
+        self.assertEqual(actual, [])

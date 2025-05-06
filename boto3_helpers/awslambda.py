@@ -46,25 +46,25 @@ def update_environment_variables(function_name, new_env, *, lambda_client=None):
     return env
 
 
-def publish_version_limited(function_name, keep_count, lambda_client=None, **kwargs):
-    """Publish a new version of a Lambda function. Afterward, delete older versions
-    such that only a limited number are left.
+def delete_old_versions(function_name, keep_count, lambda_client=None, **kwargs):
+    """Delete older published versions of a Lambda function.
 
     * *function_name* is the Lambda function name.
-    * *keep_count* is the number of versions to leave after creating the new version.
+    * *keep_count* is the number of versions to keep active.
     * *lambda_client* is a ``boto3.client('lambda')`` instance. If not given, one will
       be created with ``boto3.client('lambda')``.
-    * *kwargs* are passed to the ``publish_version`` call.
+      
+    Returns a list of the versions that were removed.
 
     Usage:
 
     .. code-block:: python
 
-        from boto3_helpers.awslambda import publish_version_limited
+        from boto3_helpers.awslambda import delete_old_versions
 
-        version_resp = publish_version_limited('test-function', 4)
+        version_resp = delete_old_versions('test-function', 4)
 
-    Deleting function versions is a destructive operation, so take care.
+    This is a destructive operation, so take care.
 
     .. note::
 
@@ -73,10 +73,6 @@ def publish_version_limited(function_name, keep_count, lambda_client=None, **kwa
         the operations aren't atomic.
     """
     lambda_client = lambda_client or boto3_client('lambda')
-
-    # Publish the new version
-    kwargs['FunctionName'] = function_name
-    publish_resp = lambda_client.publish_version(**kwargs)
 
     # Get the current list of versions
     all_versions = sorted(
@@ -90,13 +86,16 @@ def publish_version_limited(function_name, keep_count, lambda_client=None, **kwa
     )
 
     # If there are not too many versions, bail out.
+    ret = []
     if len(all_versions) <= keep_count:
-        return publish_resp
+        return ret
 
     # Remove all but the requested number of versions.
     for version_info in all_versions[:-keep_count]:
+        version_id = version_info['Version']
         lambda_client.delete_function(
-            FunctionName=function_name, Qualifier=version_info['Version']
+            FunctionName=function_name, Qualifier=version_id
         )
+        ret.append(version_id)
 
-    return publish_resp
+    return ret
