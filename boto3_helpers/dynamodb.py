@@ -271,9 +271,24 @@ def load_dynamodb_json(text, use_decimal=False):
     ``decimal.Decimal`` objects. This matches the ``boto3`` client behavior, but
     is often inconvenient.
     """
+    return parse_dynamodb_resp(loads(text), use_decimal=use_decimal)
+
+
+def parse_dynamodb_resp(data, use_decimal=False):
+    """Just like :func:`load_dynamodb_json`, but takes already-parsed ``data`` rather
+    than serialized JSON.
+
+    .. code-block:: python
+
+        from boto3 import resource as parse_dynamodb_resp
+
+        text = {'Item': {'some_number': {'N': '100'}}}
+        info = load_dynamodb_json(text)
+        assert info['Item']['some_number'] == 100
+    """
     d = _CustomTypeDeserializer(use_decimal=use_decimal, decode_binary=True).deserialize
     ret = {}
-    for key, value in loads(text).items():
+    for key, value in data.items():
         if key == 'Item':
             ret['Item'] = {k: d(v) for k, v in value.items()}
         elif key == 'Items':

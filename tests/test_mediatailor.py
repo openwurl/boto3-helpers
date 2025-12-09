@@ -41,7 +41,10 @@ class MediaTailorTests(TestCase):
             'Tags': {},
             'TranscodeProfileName': '',
             'VideoContentSourceUrl': 'https://localhost/origin/hls/',
-            'LogConfiguration': {'PercentEnabled': 1},
+            'LogConfiguration': {
+                'PercentEnabled': 1,
+                'EnabledLoggingStrategies': ['LEGACY_CLOUDWATCH'],
+            },
         }
         get_params = {'Name': 'TestConfiguration'}
         stubber.add_response('get_playback_configuration', get_resp, get_params)
