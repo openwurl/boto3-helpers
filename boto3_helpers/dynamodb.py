@@ -273,6 +273,7 @@ def load_dynamodb_json(text, use_decimal=False):
     """
     return parse_dynamodb_resp(loads(text), use_decimal=use_decimal)
 
+
 def parse_dynamodb_resp(data, use_decimal=False):
     """Just like :func:`load_dynamodb_json`, but takes already-parsed ``data`` rather
     than serialized JSON.
