@@ -15,7 +15,14 @@ class SigV4RequestException(Exception):
 
 
 def sigv4_request(
-    service, method, endpoint, client=None, base_url=None, operation_name=None, **kwargs
+    service,
+    method,
+    endpoint,
+    client=None,
+    base_url=None,
+    operation_name=None,
+    decode_json=True,
+    **kwargs,
 ):
     """Make a signed request to the AWS API and return the JSON payload.
 
@@ -28,6 +35,8 @@ def sigv4_request(
     * *base_url* is the URL for the target AWS API. If not given, a guess will be made
       based on the service name and client region.
     * *operation_name* is the name of the API operation to use when signing the request
+    * *decode_json* controls whether responses are automatically deserialized from
+      JSON (default: ``True``).
     * **kwargs** are passed on to an ``AWSRequest`` object.
 
     If the API response indicates an error,
@@ -83,4 +92,7 @@ def sigv4_request(
     if not (200 <= resp.status_code <= 299):
         raise SigV4RequestException(resp.status_code, resp.content)
 
-    return loads(resp.content)
+    if decode_json:
+        return loads(resp.content)
+    else:
+        return resp.content

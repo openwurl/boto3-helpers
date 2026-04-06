@@ -2,7 +2,6 @@ from json import loads
 
 from boto3 import client as boto3_client
 
-
 SELECT_FORMATS = {
     'json': {'JSON': {'Type': 'DOCUMENT'}},
     'json.gz': {'JSON': {'Type': 'DOCUMENT'}, 'CompressionType': 'GZIP'},

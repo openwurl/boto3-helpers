@@ -39,6 +39,40 @@ class SigV4RequestTests(TestCase):
 
         _client._endpoint.http_session.send.assert_called_once_with(sign_call[0][1])
 
+    def test_no_json_succeeds(self):
+        _client = MagicMock()
+        _client.meta.region_name = 'test-region-1'
+        _client._endpoint.http_session.send.return_value = MagicMock(
+            status_code=200, content=b'Hello world'
+        )
+
+        service = 'scheduler'
+        method = 'POST'
+        endpoint = '/schedules?MaxResults=1'
+        operation_name = 'ListSchedules'
+        actual = sigv4_request(
+            service,
+            method,
+            endpoint,
+            client=_client,
+            operation_name=operation_name,
+            decode_json=False,
+            data='{"test": "payload"}',
+        )
+        self.assertEqual(actual, b'Hello world')
+
+        sign_call = _client._request_signer.sign.call_args
+        self.assertEqual(sign_call[0][0], operation_name)
+        self.assertEqual(sign_call[0][1].method, method)
+        self.assertEqual(sign_call[0][1].data, '{"test": "payload"}')
+        self.assertEqual(
+            sign_call[0][1].url,
+            'https://scheduler.test-region-1.amazonaws.com/schedules?MaxResults=1',
+        )
+        self.assertEqual(sign_call[1], {'signing_name': service})
+
+        _client._endpoint.http_session.send.assert_called_once_with(sign_call[0][1])
+
     def test_call_fails(self):
         _client = MagicMock()
         _client.meta.region_name = 'test-region-1'
