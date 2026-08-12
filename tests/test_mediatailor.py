@@ -43,7 +43,6 @@ class MediaTailorTests(TestCase):
             'VideoContentSourceUrl': 'https://localhost/origin/hls/',
             'LogConfiguration': {
                 'PercentEnabled': 1,
-                'EnabledLoggingStrategies': ['LEGACY_CLOUDWATCH'],
             },
         }
         get_params = {'Name': 'TestConfiguration'}
