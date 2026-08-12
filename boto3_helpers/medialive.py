@@ -1,4 +1,5 @@
 from collections import defaultdict
+from datetime import datetime, timezone
 
 from boto3 import client as boto3_client
 from jmespath import search as json_search
@@ -58,22 +59,33 @@ def delete_schedule_action_chain(
     with the most recent input switch.
 
     """
-    eml_client = eml_client or boto3_client('medialive')
-    eml_actions = yield_all_items(
-        eml_client, 'describe_schedule', 'ScheduleActions', ChannelId=channel_id
-    )
-    parent_map, children_map = _parse_action_chains(eml_actions)
+    raise NotImplementedError
 
-    if delete_action_name not in parent_map:
-        raise ValueError(
-            f'Action name {delete_action_name} was not present in the schedule'
-        )
 
-    all_deletes = sorted(children_map[delete_action_name])
+def delete_schedule_after(channel_id, dt=None, dry_run=False, eml_client=None):
+    """Delete scheduled MediaLive scheduled actions that take effect after
+    *dt*.
 
-    if not dry_run:
-        eml_client.batch_update_schedule(
-            ChannelId=channel_id, Deletes={'ActionNames': all_deletes}
-        )
+    * *channel_id* is the MediaLive channel ID.
+    * *dt* is a ``datetime.datetime`` instance (UTC timezone)
+    * *dry_run* determines whether the delete actions are actually executed. Set to
+      ``False`` to return the names of the actions that _would_ have been deleted.
+    * *eml_client* (optional) is a ``boto3.client('medialive')`` instance.
 
-    return all_deletes
+    Usage:
+
+    .. code-block:: python
+
+        from boto3_helpers.medialive import delete_schedule_after
+
+        deleted_actions = delete_schedule_after('24601)
+
+    MediaLive's schedule action deletion rules are followed, so after deletion, a
+    schedule might contain the most recent fixed input switch and some of its follow
+    actions.
+    """
+    # Notes: Delete any fixed mode schedule actions after dt.
+    # Also delete any follow mode schedule actions after dt, if they're not about
+    # to be played imminently.
+    dt = dt or datetime.now(timezone.utc)
+    raise NotImplementedError
