@@ -3,7 +3,7 @@ from unittest import TestCase
 from boto3 import client as boto3_client
 from botocore.stub import Stubber
 
-from boto3_helpers.medialive import delete_schedule_action_chain
+from boto3_helpers.medialive import delete_schedule_action_chain, delete_schedule_after
 
 TEST_SCHEDULE_ACTIONS = [
     # One level down from the first chain
